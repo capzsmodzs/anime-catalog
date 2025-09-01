@@ -17,8 +17,11 @@ function applyFilters(params: URLSearchParams) {
   return list;
 }
 
-export default function Home({ searchParams }: { searchParams: { [key:string]: string | string[] | undefined }}) {
-  const sp = new URLSearchParams(Object.entries(searchParams).flatMap(([k,v]) => v ? [[k, Array.isArray(v)?v[0]:v]] : []));
+export default async function Home({ searchParams }: { searchParams: Promise<Record<string,string|string[]|undefined>> }) {
+  const spObj = await searchParams;
+  const sp = new URLSearchParams(
+    Object.entries(spObj).flatMap(([k,v]) => v ? [[k, Array.isArray(v)?v[0]:v]] : [])
+  );
   const list = applyFilters(sp);
   return (
     <section>
