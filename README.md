@@ -1,0 +1,3 @@
+# Anime Catalog
+
+Init repo.
