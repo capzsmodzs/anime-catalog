@@ -6,7 +6,10 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "prisma:gen": "prisma generate",
+    "prisma:migrate": "prisma migrate dev --name init",
+    "prisma:seed": "ts-node --transpile-only prisma/seed.ts"
   },
   "dependencies": {
     "@prisma/client": "^6.15.0",
@@ -36,6 +39,7 @@
     "prisma": "^6.15.0",
     "tailwindcss": "^4",
     "tw-animate-css": "^1.3.7",
-    "typescript": "^5"
+    "typescript": "^5",
+    "ts-node": "^10.9.2"
   }
 }

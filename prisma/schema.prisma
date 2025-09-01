@@ -1,0 +1,133 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  USER
+  ADMIN
+}
+
+enum AnimeStatus {
+  ONGOING
+  COMPLETED
+}
+
+enum SourceType {
+  URL
+  R2
+}
+
+enum UploadType {
+  VIDEO
+  IMAGE
+  OTHER
+}
+
+model User {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  password  String
+  name      String?
+  role      Role     @default(USER)
+  favorites Favorite[]
+  progress  WatchProgress[]
+  uploads   Upload[] @relation("UserUploads")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Anime {
+  id          String          @id @default(cuid())
+  title       String          @db.VarChar(200)
+  slug        String          @unique @db.VarChar(200)
+  coverUrl    String
+  status      AnimeStatus
+  year        Int
+  sinopsis    String
+  popularity  Int             @default(0)
+  episodes    Episode[]
+  genres      AnimeGenre[]
+  favorites   Favorite[]
+  progress    WatchProgress[]
+  createdAt   DateTime        @default(now())
+  updatedAt   DateTime        @updatedAt
+
+  @@index([title])
+  @@index([status, year])
+}
+
+model Episode {
+  id         String          @id @default(cuid())
+  animeId    String
+  number     Int
+  title      String
+  duration   Int
+  sourceType SourceType       @default(URL)
+  sourceUrl  String?
+  r2Key      String?
+  createdAt  DateTime         @default(now())
+  anime      Anime            @relation(fields: [animeId], references: [id])
+  progress   WatchProgress[]
+
+  @@unique([animeId, number])
+  @@index([animeId])
+}
+
+model Genre {
+  id     String      @id @default(cuid())
+  name   String      @unique
+  animes AnimeGenre[]
+}
+
+model AnimeGenre {
+  animeId String
+  genreId String
+  anime   Anime @relation(fields: [animeId], references: [id])
+  genre   Genre @relation(fields: [genreId], references: [id])
+
+  @@id([animeId, genreId])
+  @@index([genreId])
+}
+
+model Favorite {
+  userId  String
+  animeId String
+  user    User  @relation(fields: [userId], references: [id])
+  anime   Anime @relation(fields: [animeId], references: [id])
+
+  @@id([userId, animeId])
+  @@index([animeId])
+}
+
+model WatchProgress {
+  id        String   @id @default(cuid())
+  userId    String
+  animeId   String
+  episodeId String
+  position  Int       @default(0)
+  updatedAt DateTime  @updatedAt
+
+  user    User    @relation(fields: [userId], references: [id])
+  anime   Anime   @relation(fields: [animeId], references: [id])
+  episode Episode @relation(fields: [episodeId], references: [id])
+
+  @@unique([userId, episodeId])
+  @@index([animeId])
+}
+
+model Upload {
+  id         String   @id @default(cuid())
+  type       UploadType
+  url        String?
+  r2Key      String?
+  mime       String?
+  size       Int?
+  createdAt  DateTime  @default(now())
+  uploaderId String?
+  uploader   User?     @relation("UserUploads", fields: [uploaderId], references: [id])
+}
