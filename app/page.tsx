@@ -1,11 +1,31 @@
-import { Button } from "@/components/ui/button";
+import AnimeCard from "@/components/AnimeCard";
+import Filters from "@/components/Filters";
+import { MOCK_ANIME } from "@/lib/mock";
 
-export default function Home() {
+function applyFilters(params: URLSearchParams) {
+  const q = (params.get("q") ?? "").toLowerCase();
+  const genre = params.get("genre") ?? "";
+  const status = params.get("status") ?? "";
+  const sort = params.get("sort") ?? "newest";
+  let list = [...MOCK_ANIME];
+  if (q) list = list.filter(a => a.title.toLowerCase().includes(q));
+  if (genre) list = list.filter(a => a.genres.includes(genre));
+  if (status) list = list.filter(a => a.status === status);
+  if (sort === "newest") list.sort((a,b)=>b.year-a.year);
+  if (sort === "popular") list.sort((a,b)=>b.popularity-a.popularity);
+  if (sort === "title") list.sort((a,b)=>a.title.localeCompare(b.title));
+  return list;
+}
+
+export default function Home({ searchParams }: { searchParams: { [key:string]: string | string[] | undefined }}) {
+  const sp = new URLSearchParams(Object.entries(searchParams).flatMap(([k,v]) => v ? [[k, Array.isArray(v)?v[0]:v]] : []));
+  const list = applyFilters(sp);
   return (
-    <main className="min-h-screen p-6">
-      <h1 className="text-2xl font-bold">Anime Catalog</h1>
-      <p className="text-sm text-gray-500">Scaffold OK.</p>
-      <div className="mt-4"><Button>shadcn/ui OK</Button></div>
-    </main>
+    <section>
+      <Filters />
+      <div className="grid grid-cols-2 gap-3 md:grid-cols-3 lg:grid-cols-5">
+        {list.map(a => <AnimeCard key={a.id} a={a} />)}
+      </div>
+    </section>
   );
 }
